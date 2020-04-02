@@ -7,6 +7,10 @@ body,
   width: 100%;
 }
 
+#root {
+  background: linear-gradient(to right, #0670bd, #051e5e);
+}
+
 .App {
   display: flex;
   flex-direction: column;
@@ -18,7 +22,7 @@ body,
   flex-direction: row;
   margin: 10px 100px;
   height: 75vh;
-  border-radius: 5px;
+  box-shadow: 0px 3px 14px 1px rgba(74, 74, 74, 0.2);
 }
 
 .md-editor-editarea {
@@ -26,9 +30,8 @@ body,
   flex-direction: row;
 }
 
-.md-editor-editarea,
-.md-editor-renderarea {
-  width: 50%;
+.md-editor-editarea {
+  width: 53%;
 }
 
 .md-editor-line-nums,
@@ -42,7 +45,6 @@ body,
 
 .md-editor-textarea,
 .md-editor-renderarea {
-  overflow-y: scroll;
   padding: 10px;
 }
 
@@ -53,6 +55,9 @@ body,
 }
 
 .md-editor-renderarea {
+  width: 47%;
+  border-bottom-right-radius: 5px;
+  border-top-right-radius: 5px;
   margin-top: 1px;
   border-left: 2px solid grey;
   background-color: darkgrey;
@@ -66,13 +71,24 @@ body,
   line-height: 1.1rem;
 }
 
+.md-editor-line-nums > p {
+  margin: 0;
+}
+
 .md-editor-line-nums {
+  overflow: hidden;
+  min-width: 2ch;
+  width: 4ch;
+  max-width: 20ch;
   padding-right: 5px;
   text-align: right;
   padding-top: 10px;
   padding-bottom: 10px;
-  overflow-x: hidden;
+  margin-bottom: 10px;
   background-color: #eee;
   border-right: 2px solid grey;
   color: #444;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  margin-top: 1px;
 }

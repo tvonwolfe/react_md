@@ -1,26 +1,74 @@
 import React from "react"
 import marked from "marked"
 import hljs from "highlight.js"
+import { ScrollSync, ScrollSyncPane } from "react-scroll-sync"
 
-function MarkdownTextArea(props) {
-  let lineNums = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11"
+const countLines = str => str.split("\n").length
+
+const generateLineNumbers = count =>
+  Array.from(Array(count).keys())
+    .map(i => i + 1)
+    .join("\n")
+
+function LineNumbers(props) {
   return (
-    <div className="md-editor-editarea">
-      <textarea cols="2" max-cols="20" className="md-editor-line-nums" readOnly>
-        {lineNums}
-      </textarea>
+    <ScrollSyncPane>
       <textarea
-        onKeyUp={props.keyUpHandler}
-        defaultValue={props.editorContents}
-        className="md-editor-textarea"
-        autoFocus
+        className="md-editor-line-nums"
+        defaultValue={generateLineNumbers(props.numLines)}
+        readOnly
       ></textarea>
-    </div>
+    </ScrollSyncPane>
   )
 }
 
+class MarkdownTextArea extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      editorContents: props.editorContents
+    }
+
+    this.handleOnChange = e => {
+      e.persist()
+      this.setState(() => {
+        return {
+          ...this.state,
+          editorContents: e.target.value
+        }
+      })
+      props.onChangeHandler(e)
+    }
+  }
+
+  componentDidMount() {}
+
+  render() {
+    return (
+      <div className="md-editor-editarea">
+        <LineNumbers
+          key={countLines(this.state.editorContents)}
+          numLines={countLines(this.state.editorContents)}
+        />
+        <ScrollSyncPane>
+          <textarea
+            onChange={this.handleOnChange}
+            defaultValue={this.state.editorContents}
+            className="md-editor-textarea"
+            autoFocus
+          ></textarea>
+        </ScrollSyncPane>
+      </div>
+    )
+  }
+}
+
 function MarkdownRenderArea(props) {
-  return <div className="md-editor-renderarea">{props.textToRender}</div>
+  return (
+    <ScrollSyncPane>
+      <div className="md-editor-renderarea">{props.textToRender}</div>{" "}
+    </ScrollSyncPane>
+  )
 }
 
 class MarkdownEditor extends React.Component {
@@ -31,22 +79,27 @@ class MarkdownEditor extends React.Component {
     }
   }
 
-  handleOnKeyUp(event) {
+  handleOnChange(event) {
     event.persist()
     this.setState(() => {
-      return { editorContents: event.target.value }
+      return {
+        ...this.state,
+        editorContents: event.target.value
+      }
     })
   }
 
   render() {
     return (
-      <div className="md-editor-container">
-        <MarkdownTextArea
-          editorContents={this.state.editorContents}
-          keyUpHandler={e => this.handleOnKeyUp(e)}
-        />
-        <MarkdownRenderArea textToRender={this.state.editorContents} />
-      </div>
+      <ScrollSync>
+        <div className="md-editor-container">
+          <MarkdownTextArea
+            editorContents={this.state.editorContents}
+            onChangeHandler={e => this.handleOnChange(e)}
+          />
+          <MarkdownRenderArea textToRender={this.state.editorContents} />
+        </div>
+      </ScrollSync>
     )
   }
 }
