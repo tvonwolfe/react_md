@@ -1,40 +1,45 @@
 import React from "react"
-import marked from "marked"
+import marked, { Renderer } from "marked"
 import hljs from "highlight.js"
 import { ScrollSync, ScrollSyncPane } from "react-scroll-sync"
+import DOMPurify from "dompurify"
 
-const countLines = str => str.split("\n").length
+// count the number of lines in a string.
+const countLines = (str) => str.split("\n").length
 
-const generateLineNumbers = count =>
+const generateLineNumbers = (count) =>
   Array.from(Array(count).keys())
-    .map(i => i + 1)
+    .map((i) => i + 1)
     .join("\n")
 
-function LineNumbers(props) {
+// our component for displaying line numbers in the editor. Takes a simple count as the input.
+function LineNumbers({ numLines }) {
   return (
     <ScrollSyncPane>
       <textarea
         className="md-editor-line-nums"
-        defaultValue={generateLineNumbers(props.numLines)}
+        defaultValue={generateLineNumbers(numLines)}
+        tabIndex="-1"
         readOnly
       ></textarea>
     </ScrollSyncPane>
   )
 }
 
+// The MarkdownTextArea component.
 class MarkdownTextArea extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      editorContents: props.editorContents
+      editorContents: props.editorContents,
     }
 
-    this.handleOnChange = e => {
+    this.handleOnChange = (e) => {
       e.persist()
       this.setState(() => {
         return {
           ...this.state,
-          editorContents: e.target.value
+          editorContents: e.target.value,
         }
       })
       props.onChangeHandler(e)
@@ -63,28 +68,62 @@ class MarkdownTextArea extends React.Component {
   }
 }
 
-function MarkdownRenderArea(props) {
+const renderMarkdown = (markdown) => {
+  const renderer = new Renderer()
+  const linkRenderer = renderer.link
+
+  // make links open in a new tab.
+  renderer.link = (href, title, text) =>
+    linkRenderer
+      .call(renderer, href, title, text)
+      .replace(/^a /, '<a target="_blank" rel="nofollow" ')
+
+  return {
+    // sanitize the inputs, and pass it to the marked function, also passing in
+    // our customized renderer, and tell it to use hljs for syntax highlighting
+    // of code snippets.
+    __html: DOMPurify.sanitize(
+      marked(markdown, {
+        renderer,
+        highlight: (code) => hljs.highlightAuto(code).value,
+      })
+    ),
+  }
+}
+
+// our rendering area functional component. Takes markdown as the input,
+// and renders it.
+function MarkdownRenderArea({ textToRender }) {
   return (
     <ScrollSyncPane>
-      <div className="md-editor-renderarea">{props.textToRender}</div>{" "}
+      <div
+        className="md-editor-renderarea"
+        // 'dangerously' set the inner HTML here to the output of the renderMarkdown function.
+        // We should be alright, as renderMarkdown sanitizes its input.
+        dangerouslySetInnerHTML={renderMarkdown(textToRender)}
+        tabIndex="-1"
+      ></div>
     </ScrollSyncPane>
   )
 }
 
+// The MarkdownEditor component. Contains the textarea that users input their text into, as well
+// as the rendering area that dipslays the rendered markdown.
 class MarkdownEditor extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      editorContents: props.defaultContents
+      editorContents: props.defaultContents,
     }
   }
 
+  // On change, we want to grab what's in the textarea.
   handleOnChange(event) {
     event.persist()
     this.setState(() => {
       return {
         ...this.state,
-        editorContents: event.target.value
+        editorContents: event.target.value,
       }
     })
   }
@@ -95,13 +134,18 @@ class MarkdownEditor extends React.Component {
         <div className="md-editor-container">
           <MarkdownTextArea
             editorContents={this.state.editorContents}
-            onChangeHandler={e => this.handleOnChange(e)}
+            // call our handleOnChange method every time the editor changes.
+            onChangeHandler={(e) => this.handleOnChange(e)}
           />
           <MarkdownRenderArea textToRender={this.state.editorContents} />
         </div>
       </ScrollSync>
     )
   }
+}
+
+MarkdownEditor.defaultProps = {
+  defaultContents: "",
 }
 
 export default MarkdownEditor
