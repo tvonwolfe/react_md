@@ -8,7 +8,7 @@
     "@testing-library/user-event": "^7.2.1",
     "dompurify": "^2.0.8",
     "highlight.js": "^10.4.1",
-    "marked": "^0.8.2",
+    "marked": "^4.0.10",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-html-parser": "^2.0.2",
